@@ -131,7 +131,7 @@ export const submitQuiz = async (req, res, next) => {
                 correctCount, 
                 totalQuestions: quiz.totalQuestions,
                 percentage: score,
-                userAnswers
+                userAnswers: quiz.userAnswers
             },
             message: 'Quiz submitted successfully'
         });

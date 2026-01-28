@@ -45,6 +45,10 @@ const quizSchema = new mongoose.Schema({
             type: Number,
             required: true
         },
+        selectedAnswer: { 
+            type: String,
+            required: true 
+        }, 
         isCorrect: {
             type: Boolean,
             required: true

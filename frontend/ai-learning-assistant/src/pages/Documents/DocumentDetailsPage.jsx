@@ -8,6 +8,8 @@ import PageHeader from '../../components/common/PageHeader';
 import Tabs from '../../components/common/Tabs';
 import ChatInterface from '../../components/chat/ChatInterface';
 import AIActions from '../../components/ai/AIActions';
+import FlashcardManager from '../../components/flashcards/FlashcardManager';
+import QuizManager from '../../components/quizzes/QuizManager';
 const DocumentDetailPage = () => {
   const { id } = useParams();
   const [document, setDocument] = useState(null);
@@ -99,11 +101,11 @@ const renderChat = () => {
   };
 
   const renderFlashcardsTab = () => {
-    <div className="p-6">Flashcards coming soon 🧠</div>
+    return <FlashcardManager documentId={id}/>
   };
 
   const renderQuizzesTab = () => {
-    <div className="p-6">Quizzes coming soon 📝</div>
+    return <QuizManager documentId={id}/>
   };
 
   /* ---------------- TABS CONFIG ---------------- */
