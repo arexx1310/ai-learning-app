@@ -5,7 +5,7 @@ dotenv.config();
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY});
 
-if(!process.env.GEMINi_API_KEY) {
+if(!process.env.GEMINI_API_KEY) {
     console.error('FATAL ERROR: GEMINI__KEY is not set in the environment variables');
     process.exit(1);
 }

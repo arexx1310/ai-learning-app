@@ -122,9 +122,9 @@ const QuizResultPage = () => {
                                     </p>
                                 </div>
                                 {item.isCorrect ? (
-                                    <CheckCircle2 className="w-6 h-6 text-emerald-500 flex-shrink-0" />
+                                    <CheckCircle2 className="w-6 h-6 text-emerald-500 shrink-0" />
                                 ) : (
-                                    <XCircle className="w-6 h-6 text-red-500 flex-shrink-0" />
+                                    <XCircle className="w-6 h-6 text-red-500 shrink-0" />
                                 )}
                             </div>
 
@@ -170,7 +170,7 @@ const QuizResultPage = () => {
 
                             {/* Explanation Box */}
                             <div className="bg-slate-50 rounded-xl p-4 flex items-start gap-3">
-                                <Info className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
+                                <Info className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
                                 <div>
                                     <p className="text-xs font-bold text-slate-500 uppercase tracking-tight mb-1">Explanation</p>
                                     <p className="text-sm text-slate-600 leading-relaxed">
@@ -184,7 +184,7 @@ const QuizResultPage = () => {
             </div>
 
             <div className="mt-12 flex justify-center">
-                <Button size="md" className="min-w-[200px]" onClick={() => navigate(`/documents/${quiz.document._id}`)}>
+                <Button size="md" className="min-w-50" onClick={() => navigate(`/documents/${quiz.document._id}`)}>
                     Finish Review
                 </Button>
             </div>
