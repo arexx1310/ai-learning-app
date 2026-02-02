@@ -5,6 +5,7 @@ import documentService from '../../services/documentService';
 import Spinner from "../../components/common/Spinner";
 import Button from '../../components/common/Button';
 import DocumentCard from '../../components/documents/DocumentCard';
+import PageHeader from '../../components/common/PageHeader';
 
 const DocumentListPage = () => {
     const [documents, setDocuments] = useState([]);
@@ -78,7 +79,7 @@ const DocumentListPage = () => {
         try {
             await documentService.deleteDocument(selectedDoc._id);
             toast.success(`'${selectedDoc.title}' deleted.`);
-            setIsDeleteModalOpen(false); // FIXED: Correct state variable
+            setIsDeleteModalOpen(false); 
             setSelectedDoc(null);
             setDocuments(documents.filter((d) => d._id !== selectedDoc._id));
         } catch (error) {
@@ -92,7 +93,7 @@ const DocumentListPage = () => {
         if (loading) {
             return (
                 <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                    <Spinner className="w-12 h-12 border-blue-600" />
+                    <Spinner/>
                     <p className="mt-4 text-slate-500 font-medium animate-pulse">Loading library...</p>
                 </div>
             );
@@ -136,14 +137,10 @@ const DocumentListPage = () => {
             <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
                 {/* Header Section */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
-                    <div>
-                        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                            My Documents
-                        </h1>
-                        <p className="text-slate-500 mt-1 font-medium italic">
-                            {documents.length} materials in your collection
-                        </p>
-                    </div>
+                    <PageHeader 
+                        title="My Documents"
+                        subtitle={`${documents.length} in your collection.`}
+                    />
                     <Button 
                         onClick={() => setIsUploadModalOpen(true)} 
                         className="h-12 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-100 group"

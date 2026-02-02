@@ -1,192 +1,222 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import quizService from '../../services/quizService';
+import PageHeader from '../../components/common/PageHeader';
+import Spinner from '../../components/common/Spinner';
+import { toast } from 'react-hot-toast';
 import { 
+    ArrowLeft, 
     CheckCircle2, 
     XCircle, 
-    RotateCcw, 
-    FileText, 
     Trophy, 
-    ChevronRight,
-    Info
+    Target, 
+    BookOpen, 
+    HelpCircle,
+    Info,
+    ChevronRight
 } from 'lucide-react';
 
-import quizService from '../../services/quizService';
-import Spinner from '../../components/common/Spinner';
-import PageHeader from '../../components/common/PageHeader';
-import Button from '../../components/common/Button';
-
 const QuizResultPage = () => {
-    const { quizId} = useParams();
-    const navigate = useNavigate();
+    const { quizId } = useParams();
+    const [results, setResults] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [resultData, setResultData] = useState(null);
 
     useEffect(() => {
         const fetchResults = async () => {
             try {
-                const response = await quizService.getQuizResults(quizId);
-                setResultData(response.data);
-            } catch (err) {
-                setError(err.message || 'Failed to load results');
+                const data = await quizService.getQuizResults(quizId);
+                setResults(data);
+            } catch (error) {
+                toast.error('Failed to fetch quiz results.');
+                console.error(error);
             } finally {
                 setLoading(false);
             }
-        };
+        }
         fetchResults();
-    }, [quizId]); 
+    }, [quizId]);
 
     if (loading) return <div className="min-h-screen flex items-center justify-center"><Spinner /></div>;
-    
-    if (error) return (
-        <div className="max-w-2xl mx-auto mt-20 text-center p-8 bg-white rounded-2xl shadow-sm border border-slate-100">
-            <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-slate-800">Oops!</h2>
-            <p className="text-slate-500 mt-2 mb-6">{error}</p>
-            <Button onClick={() => navigate(-1)}>Go Back</Button>
-        </div>
-    );
 
-    const { quiz, results } = resultData;
-
-    return (
-        <div className="max-w-4xl mx-auto px-4 py-8">
-            <PageHeader 
-                title="Quiz Analysis" 
-                subtitle={`Performance for: ${quiz.title}`}
-            >
-                <Button variant="outline" size="sm" onClick={() => navigate(`/documents/${quiz.document._id}`)}>
-                    <FileText className="w-4 h-4" />
-                    Back to Document
-                </Button>
-            </PageHeader>
-
-            {/* Score Summary Card */}
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 mb-8 overflow-hidden relative">
-                <div className="absolute top-0 right-0 p-8 opacity-5">
-                    <Trophy size={160} />
-                </div>
-                
-                <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
-                    <div className="relative">
-                        {/* Circular Progress (Simplified SVG) */}
-                        <svg className="w-32 h-32 transform -rotate-90">
-                            <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-100" />
-                            <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" 
-                                strokeDasharray={364.4}
-                                strokeDashoffset={364.4 - (364.4 * quiz.score) / 100}
-                                className="text-emerald-500 transition-all duration-1000 ease-out" 
-                            />
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-3xl font-black text-slate-900">{quiz.score}%</span>
-                        </div>
-                    </div>
-
-                    <div className="text-center md:text-left flex-1">
-                        <h2 className="text-2xl font-bold text-slate-800">
-                            {quiz.score >= 70 ? 'Excellent Work!' : quiz.score >= 40 ? 'Good Effort!' : 'Keep Practicing!'}
-                        </h2>
-                        <p className="text-slate-500 mt-1">
-                            You answered <span className="font-bold text-slate-700">{quiz.score / 100 * quiz.totalQuestions}</span> out of <span className="font-bold text-slate-700">{quiz.totalQuestions}</span> questions correctly.
-                        </p>
-                        <div className="flex flex-wrap gap-4 mt-6">
-                            <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-bold">
-                                <CheckCircle2 className="w-4 h-4" /> Correct
-                            </div>
-                            <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-600 rounded-xl text-sm font-bold">
-                                <RotateCcw className="w-4 h-4" /> Reviewed
-                            </div>
-                        </div>
-                    </div>
+    if (!results || !results.data) {
+        return (
+            <div className="max-w-4xl mx-auto p-6 text-center">
+                <div className="bg-white rounded-2xl shadow-sm p-12 border border-slate-100">
+                    <p className="text-slate-500 text-lg">Quiz results not found.</p>
+                    <Link to="/dashboard" className="mt-4 text-blue-600 hover:underline inline-flex items-center">
+                        <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+                    </Link>
                 </div>
             </div>
+        );
+    }
 
-            {/* Detailed Questions List */}
-            <div className="space-y-6">
-                {results.map((item, idx) => (
-                    <div 
-                        key={idx} 
-                        className={`group bg-white rounded-2xl border-2 transition-all duration-200 ${
-                            item.isCorrect ? 'border-emerald-100' : 'border-red-100'
-                        }`}
+    const { data: { quiz, results: detailedResults } } = results;
+    const score = quiz.score;
+    const totalQuestions = detailedResults.length;
+    const correctAnswers = detailedResults.filter(r => r.isCorrect).length;
+    const incorrectAnswers = totalQuestions - correctAnswers;
+
+    const getScoreColor = (score) => {
+        if (score >= 80) return 'from-emerald-500 to-teal-500';
+        if (score >= 60) return 'from-amber-400 to-orange-500';
+        return 'from-rose-500 to-red-600';
+    }
+
+    const getScoreMessage = (score) => {
+        if (score >= 90) return 'Outstanding Performance! 🏆';
+        if (score >= 80) return 'Great Job! 🌟';
+        if (score >= 70) return 'Good Work! 👍';
+        if (score >= 60) return 'Not Bad, keep it up! 💪';
+        return 'Keep Practicing, you’ll get there! 📚';
+    };
+
+    return (
+        <div className="min-h-screen bg-slate-50/50 pb-20">
+            <div className="max-w-4xl mx-auto px-4 pt-6">
+                {/* Navigation Header */}
+                <div className="flex items-center justify-between mb-6">
+                    <Link 
+                        to={`/documents/${quiz.document?._id}`}
+                        className="inline-flex items-center text-slate-600 hover:text-slate-900 transition-colors group"
                     >
-                        <div className="p-6">
-                            <div className="flex items-start justify-between gap-4 mb-4">
-                                <div className="space-y-1">
-                                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                                        Question {idx + 1}
+                        <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+                        Back to Document
+                    </Link>
+                </div>
+
+                <PageHeader 
+                    title={quiz.title || 'Quiz Results'} 
+                    subtitle={`Completed on ${new Date(quiz.completedAt).toLocaleDateString()}`}
+                />
+
+                {/* Main Score Summary Card */}
+                <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100 mb-12">
+                    <div className="p-8 md:p-12 text-center relative">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-slate-100">
+                            <div 
+                                className={`h-full bg-gradient-to-r ${getScoreColor(score)} transition-all duration-1000`} 
+                                style={{ width: `${score}%` }}
+                            />
+                        </div>
+
+                        <div className="inline-flex p-4 rounded-full bg-slate-50 mb-6">
+                            <Trophy className="w-12 h-12 text-amber-500" strokeWidth={1.5} />
+                        </div>
+
+                        <h2 className="text-slate-500 font-medium uppercase tracking-wider text-sm mb-2">Your Final Score</h2>
+                        <div className={`text-7xl md:text-8xl font-black bg-gradient-to-r ${getScoreColor(score)} bg-clip-text text-transparent mb-4`}>
+                            {score}%
+                        </div>
+                        <p className="text-xl md:text-2xl font-semibold text-slate-800">
+                            {getScoreMessage(score)}
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 border-t border-slate-100">
+                        <div className="p-6 flex items-center justify-center space-x-4 border-b md:border-b-0 md:border-r border-slate-100">
+                            <div className="p-3 bg-blue-50 rounded-xl text-blue-600"><BookOpen size={24}/></div>
+                            <div className="text-left">
+                                <p className="text-sm text-slate-500">Total Questions</p>
+                                <p className="text-xl font-bold text-slate-800">{totalQuestions}</p>
+                            </div>
+                        </div>
+                        <div className="p-6 flex items-center justify-center space-x-4 border-b md:border-b-0 md:border-r border-slate-100">
+                            <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600"><Target size={24}/></div>
+                            <div className="text-left">
+                                <p className="text-sm text-slate-500">Correct</p>
+                                <p className="text-xl font-bold text-slate-800">{correctAnswers}</p>
+                            </div>
+                        </div>
+                        <div className="p-6 flex items-center justify-center space-x-4">
+                            <div className="p-3 bg-rose-50 rounded-xl text-rose-600"><XCircle size={24}/></div>
+                            <div className="text-left">
+                                <p className="text-sm text-slate-500">Incorrect</p>
+                                <p className="text-xl font-bold text-slate-800">{incorrectAnswers}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Detailed Analysis Section */}
+                <div className="space-y-8">
+                    <div className="flex items-center space-x-2 mb-4">
+                        <HelpCircle className="text-slate-400" />
+                        <h3 className="text-xl font-bold text-slate-800">Question Analysis</h3>
+                    </div>
+
+                    {detailedResults.map((result, index) => (
+                        <div 
+                            key={index} 
+                            className={`bg-white rounded-2xl border transition-all duration-300 ${
+                                result.isCorrect ? 'border-emerald-100' : 'border-rose-100'
+                            } shadow-sm overflow-hidden`}
+                        >
+                            {/* Question Header */}
+                            <div className={`p-5 flex items-start justify-between ${
+                                result.isCorrect ? 'bg-emerald-50/30' : 'bg-rose-50/30'
+                            }`}>
+                                <div className="flex space-x-4">
+                                    <span className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${
+                                        result.isCorrect ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'
+                                    }`}>
+                                        {index + 1}
                                     </span>
-                                    <p className="text-lg font-bold text-slate-800 leading-snug">
-                                        {item.question}
-                                    </p>
+                                    <h4 className="text-lg font-semibold text-slate-800 leading-tight">
+                                        {result.question}
+                                    </h4>
                                 </div>
-                                {item.isCorrect ? (
-                                    <CheckCircle2 className="w-6 h-6 text-emerald-500 shrink-0" />
+                                {result.isCorrect ? (
+                                    <CheckCircle2 className="w-6 h-6 text-emerald-500 flex-shrink-0" />
                                 ) : (
-                                    <XCircle className="w-6 h-6 text-red-500 shrink-0" />
+                                    <XCircle className="w-6 h-6 text-rose-500 flex-shrink-0" />
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-                                {item.options.map((option, optIdx) => {
-                                    const isUserChoice = option === item.selectedAnswer;
-                                    const isCorrectChoice = option === item.correctAnswer;
-
-                                    // Styling Logic
-                                    let variantClasses = "bg-slate-50 text-slate-600 border-slate-200";
+                            {/* Options List */}
+                            <div className="p-6 space-y-3">
+                                {result.options.map((option, optIdx) => {
+                                    const isSelected = result.selectedAnswer === option;
+                                    const isCorrectOption = result.correctAnswer === option;
                                     
-                                    if (isCorrectChoice) {
-                                        // Correct answer is always Green
-                                        variantClasses = "bg-emerald-500 text-white border-emerald-600 shadow-md ring-2 ring-emerald-500/20";
-                                    } else if (isUserChoice) {
-                                        // User picked this and it's NOT correct (handled by 'else if'), so Red
-                                        variantClasses = "bg-red-500 text-white border-red-600 shadow-md animate-shake";
-                                    }
+                                    let optionStyle = "border-slate-100 bg-slate-50/50 text-slate-600";
+                                    if (isCorrectOption) optionStyle = "border-emerald-500 bg-emerald-50 text-emerald-700 font-medium ring-1 ring-emerald-500";
+                                    else if (isSelected && !isCorrectOption) optionStyle = "border-rose-500 bg-rose-50 text-rose-700 font-medium ring-1 ring-rose-500";
 
                                     return (
                                         <div 
                                             key={optIdx} 
-                                            className={`relative px-4 py-3 rounded-xl text-sm font-bold border-2 transition-all duration-300 flex items-center justify-between ${variantClasses}`}
+                                            className={`p-4 rounded-xl border flex items-center justify-between transition-colors ${optionStyle}`}
                                         >
                                             <span>{option}</span>
-                                            
-                                            <div className="flex gap-2">
-                                                {isCorrectChoice && (
-                                                    <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-lg uppercase whitespace-nowrap">
-                                                        Correct Answer
-                                                    </span>
-                                                )}
-                                                {(isUserChoice && !isCorrectChoice) && (
-                                                    <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-lg uppercase whitespace-nowrap">
-                                                        Your Choice
-                                                    </span>
-                                                )}
-                                            </div>
+                                            {isCorrectOption && <CheckCircle2 size={18} className="text-emerald-600" />}
+                                            {isSelected && !isCorrectOption && <XCircle size={18} className="text-rose-600" />}
                                         </div>
                                     );
                                 })}
                             </div>
 
-                            {/* Explanation Box */}
-                            <div className="bg-slate-50 rounded-xl p-4 flex items-start gap-3">
-                                <Info className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
-                                <div>
-                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-tight mb-1">Explanation</p>
-                                    <p className="text-sm text-slate-600 leading-relaxed">
-                                        {item.explanation || "No explanation provided for this question."}
-                                    </p>
+                            {/* AI Explanation Box */}
+                            {result.explanation && (
+                                <div className="px-6 pb-6">
+                                    <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100 flex items-start space-x-3">
+                                        <div className="bg-blue-100 p-1.5 rounded-lg">
+                                            <Info className="w-4 h-4 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Explanation</p>
+                                            <p className="text-sm text-slate-700 leading-relaxed">
+                                                {result.explanation}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
 
-            <div className="mt-12 flex justify-center">
-                <Button size="md" className="min-w-50" onClick={() => navigate(`/documents/${quiz.document._id}`)}>
-                    Finish Review
-                </Button>
+            
             </div>
         </div>
     );

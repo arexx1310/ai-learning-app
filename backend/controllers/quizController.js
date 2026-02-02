@@ -170,8 +170,8 @@ export const getQuizResults = async (req, res, next) => {
         // Build detailed results
 
         const detailedResults = quiz.questions.map((question, index) => {
-            const userAnswer = quiz.userAnswers.find(a => a.questionIndex === index);
-            
+        const userAnswer = quiz.userAnswers.find(a => a.questionIndex === index);
+           
             return {
                 questionIndex: index,
                 question: question.question,
@@ -182,7 +182,7 @@ export const getQuizResults = async (req, res, next) => {
                 explanation: question.explanation
                 };
         });
-
+            
         res.status(200).json({
             success: true,
             data: {

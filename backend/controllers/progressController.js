@@ -37,10 +37,10 @@ export const getDashboard = async (req, res, next) => {
             :0;
 
         // Recent Acitivity
-        const recentDocuments = await Document.find( {userId})
+        const recentDocuments = await Document.find({userId})
             .sort({ lastAccessed: -1})
             .limit(5)
-            .select('Title fileName lastAccessed status');
+            .select('title fileName lastAccessed status');
 
         const recentQuizzes = await Quiz.find({ userId })
             .sort({createdAt: -1})
@@ -50,7 +50,7 @@ export const getDashboard = async (req, res, next) => {
 
         //Study streak (simplified - in production, track daily activity)
 
-        const studyStreak = Math.floor(Math.random() * 7) + 1; //Mock data
+        const studyStreak = Math.floor(Math.random() * 7) + 1; 
 
         res.status(200).json({
             success: true,
@@ -66,7 +66,7 @@ export const getDashboard = async (req, res, next) => {
                     averageScore,
                     studyStreak,
                 },
-                recentAcitvity: {
+                recentActivity: {
                     documents: recentDocuments,
                     quizzes: recentQuizzes,
                 }

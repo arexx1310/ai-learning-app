@@ -162,7 +162,7 @@ const FlashcardManager = ({documentId}) => {
 
                 {/* Flashcard Display */}
                 <div className="relative">
-                    <div className="w-full flex justify-center items-center min-h-[400px]">
+                    <div className="w-full flex justify-center items-center min-h-100">
                         <Flashcard
                             key={currentCard._id}
                             flashcard={currentCard}

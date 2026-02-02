@@ -1,7 +1,7 @@
 import axiosInstance from '../utils/axiosInstances';
 import { API_PATHS} from '../utils/apiPaths';
 
-const getAllFlashcards = async () => {
+const getAllFlashcardsSets = async () => {
     try {
         const response = await axiosInstance.get(API_PATHS.FLASHCARDS.GET_ALL_FLASHCARD_SETS);
         return response.data;
@@ -47,7 +47,7 @@ const deleteFlashcardSet = async (id) => {
 };
 
 const flashcardService = {
-    getAllFlashcards,
+    getAllFlashcardsSets,
     getFlashcardsForDocument,
     reviewFlashcard,
     toggleStar,

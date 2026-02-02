@@ -215,10 +215,7 @@ export const deleteDocument = async (req, res, next) => {
         if (!document) {
             return res.status(404).json({ success: false, error: 'Document not found' });
         }
-
-        // 1. Convert URL to Local Path
-        // This assumes your URL looks like: http://localhost:8000/uploads/...
-        // We take the part after "8000/"
+        
         const urlParts = document.filePath.split(`${process.env.PORT}/`);
         const relativePath = urlParts[1]; 
 
