@@ -186,6 +186,7 @@ backend/
 │   └── textChunker.js       # Text chunking & search
 ├── uploads/                 # File storage
 ├── server.js               # Entry point
+├── package-lock.json
 └── package.json
 ```
 
@@ -255,7 +256,14 @@ frontend/ai=learning-assistant
 │   ├── App.jsx
 │   ├── index.css
 │   └── main.jsx
-└── package.json
+├── package.json
+├──.gitignore
+├──README.md
+├──eslint.config.js
+├──index.html
+├──package-lock.json
+├──package.json
+└──vite.config.js
 ```
 
 ## 🔌 API Endpoints
