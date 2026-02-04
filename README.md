@@ -41,7 +41,7 @@ An intelligent document-based learning platform that leverages Google's Gemini A
 - **Framework**: React 18
 - **Routing**: React Router DOM v6
 - **HTTP Client**: Axios
-- **Styling**: Tailwind CSS (implied from project structure)
+- **Styling**: Tailwind CSS 
 - **State Management**: React Context API
 
 ## 📋 Prerequisites
@@ -59,7 +59,7 @@ Before running this project, ensure you have:
 
 ```bash
 git clone <repository-url>
-cd learning-platform
+cd ai-learning-app
 ```
 
 ### 2. Backend Setup
@@ -104,7 +104,7 @@ FRONTEND_URL=http://localhost:5173
 
 ```bash
 # Navigate to frontend directory
-cd ../frontend
+cd ../frontend/ai-learning-assistant
 
 # Install dependencies
 npm install
@@ -155,14 +155,15 @@ The application will open at `http://localhost:5173`
 ```
 backend/
 ├── config/
-│   └── db.js                 # MongoDB connection
+    ├── db.js                # MongoDB connection
+│   └── multer.js            # Multer Configuration    
 ├── controllers/
-│   ├── aiController.js       # AI feature controllers
-│   ├── authController.js     # Authentication logic
-│   ├── documentController.js # Document management
-│   ├── flashcardController.js
-│   ├── quizController.js
-│   └── progressController.js
+│   ├── aiController.js         # AI feature controllers
+│   ├── authController.js       # Authentication logic
+│   ├── documentController.js   # Document management
+│   ├── flashcardController.js  #Flashcard Controllers
+│   ├── quizController.js       #Quiz Logic
+│   └── progressController.js   #Progress Tracking Controller
 ├── middleware/
 │   ├── auth.js              # JWT authentication
 │   └── errorHandlers.js     # Error handling
@@ -184,20 +185,46 @@ backend/
 │   ├── pdfParser.js         # PDF text extraction
 │   └── textChunker.js       # Text chunking & search
 ├── uploads/                 # File storage
-└── server.js               # Entry point
+├── server.js               # Entry point
+└── package.json
 ```
 
 ### Frontend Structure
 
 ```
-frontend/
+frontend/ai=learning-assistant
 ├── src/
-│   ├── api/
+│   ├── utils/
 │   │   ├── apiPaths.js      # API endpoint definitions
 │   │   └── axiosConfig.js   # Axios instance & interceptors
 │   ├── components/
+│   │   └── ai/
+│   │       └── AIActions.jsx
 │   │   └── auth/
 │   │       └── ProtectedRoutes.jsx
+│   │   └── chat/
+│   │       └── ChatInterface.jsx
+│   │   └── common/
+│   │       ├── Button.jsx
+│   │       ├── EmptyState.jsx
+│   │       ├── MarkDownRender.jsx
+│   │       ├── Modal.jsx
+│   │       ├── PageHeader.jsx
+│   │       ├── Spinner.jsx
+│   │       └── Tabs.jsx
+│   │   └── documents/
+│   │       └── DocumentCard.jsx
+│   │   └── flashcards/
+│   │       ├── Flashcard.jsx
+│   │       ├── FlashcardManager.jsx
+│   │       └── FlashcardSetCard.jsx
+│   │   └── layout/
+│   │       ├── AppLayout.jsx
+│   │       ├── Header.jsx
+│   │       └── Sidebar.jsx
+│   │   └── quizzes/
+│   │       ├── QuizCard.jsx
+│   │       └── QuizManager.jsx
 │   ├── context/
 │   │   └── AuthContext.jsx  # Authentication state
 │   ├── pages/
@@ -218,7 +245,15 @@ frontend/
 │   │   ├── Profile/
 │   │   │   └── ProfilePage.jsx
 │   │   └── NotFoundPage.jsx
+│   ├── services/
+│   │       ├── aiService.jsx
+│   │       ├── authService.jsx
+│   │       ├── documentService.jsx
+│   │       ├── flashcardService.jsx
+│   │       ├── progressService.jsx
+│   │       └── quizService.jsx
 │   ├── App.jsx
+│   ├── index.css
 │   └── main.jsx
 └── package.json
 ```
