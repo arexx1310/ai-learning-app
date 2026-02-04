@@ -322,6 +322,109 @@ frontend/ai=learning-assistant
 
 ## 🎨 Key Features Explained
 
+### Frontend Architecture
+
+#### Service Layer Pattern
+All API calls are abstracted into service modules for clean separation of concerns:
+
+```javascript
+// Example: authService.js
+const login = async (email, password) => {
+    const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, {
+        email,
+        password,
+    });
+    return response.data;
+};
+```
+**Available Services:**
+- `authService` - Authentication & user management
+- `documentService` - Document CRUD operations
+- `aiService` - AI feature interactions
+- `flashcardService` - Flashcard management
+- `quizService` - Quiz operations
+- `progressService` - Dashboard data
+
+#### Axios Configuration
+Centralized HTTP client with automatic token injection:
+
+```javascript
+// Request Interceptor - Adds JWT to all requests
+axiosInstance.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+// Response Interceptor - Handles errors globally
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            // Handle unauthorized
+        }
+        return Promise.reject(error);
+    }
+);
+```
+
+#### Authentication Context
+Global auth state management using React Context:
+
+```javascript
+const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    const login = (userData, token) => {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        setIsAuthenticated(true);
+    };
+
+    const logout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUser(null);
+        setIsAuthenticated(false);
+        window.location.href = '/';
+    };
+    
+    // ... checkAuthStatus, updateUser
+};
+```
+
+#### Protected Routes
+Route protection with automatic redirects:
+
+```javascript
+<Route element={<ProtectedRoute />}>
+    <Route path="/dashboard" element={<DashboardPage />} />
+    <Route path="/documents" element={<DocumentListPage />} />
+    {/* Other protected routes */}
+</Route>
+```
+#### Design System
+Custom Tailwind CSS with glassmorphism and modern UI patterns:
+
+**Color Palette:**
+- Primary: Emerald/Teal gradient (`from-emerald-500 to-teal-500`)
+- Background: Slate grays (`slate-50`, `slate-100`)
+- Borders: Subtle slate borders with transparency
+- Shadows: Layered shadow system for depth
+
+**UI Patterns:**
+- **Glassmorphism**: `bg-white/80 backdrop-blur-xl`
+- **Smooth Animations**: `transition-all duration-200`
+- **Hover States**: Scale transforms and shadow elevation
+- **Focus Rings**: `focus:ring-4 focus:ring-emerald-500/20`
+- **Gradient Buttons**: With shine effect on hover
+- **Icon Integration**: Lucide React icons with consistent sizing
+  
 ### Document Chunking
 Documents are intelligently split into chunks for better AI processing:
 - **Chunk Size**: 500 words (configurable)
@@ -346,12 +449,35 @@ Using Google Gemini 2.5 Flash Lite:
 
 ## 🐛 Error Handling
 
-The application includes comprehensive error handling:
+The application includes comprehensive error handling on both frontend and backend:
+
+### Backend
 - Centralized error middleware
 - Graceful PDF parsing failures
 - API timeout handling (10s)
 - Database connection error recovery
 - User-friendly error messages
+
+### Frontend
+- **Service Layer Error Catching**: All API calls wrapped in try-catch
+- **Axios Interceptors**: Global response error handling
+- **Toast Notifications**: User-friendly error messages
+- **Form Validation**: Client-side validation before API calls
+- **Fallback UI**: Empty states and error boundaries
+- **Network Error Detection**: Timeout and connection error handling
+
+**Error Flow Example:**
+```javascript
+try {
+    const data = await documentService.getDocuments();
+    setDocuments(data);
+} catch (error) {
+    toast.error(error.message || 'Failed to fetch documents');
+    console.error(error);
+} finally {
+    setLoading(false);
+}
+```
 
 ## 📊 Database Models
 
@@ -383,6 +509,40 @@ The application includes comprehensive error handling:
 - messages[] with role, content, timestamp
 - relevantChunks tracking
 
+## 🗺️ Routing & Navigation
+
+### Route Structure
+
+**Public Routes:**
+- `/login` - User login page
+- `/register` - New user registration
+- `/` - Redirects to `/dashboard` if authenticated, `/login` otherwise
+
+**Protected Routes** (Require authentication):
+- `/dashboard` - Learning overview and statistics
+- `/documents` - All uploaded documents
+- `/documents/:id` - Single document detail view
+- `/flashcards` - All flashcard sets
+- `/documents/:id/flashcards` - Flashcards for specific document
+- `/quizzes/:quizId` - Take a quiz
+- `/quizzes/:quizId/results` - View quiz results
+- `/profile` - User profile management
+- `*` - 404 Not Found page
+
+### Navigation Flow
+1. **Unauthenticated User**: 
+   - Lands on `/` → Redirected to `/login`
+   - After login → Redirected to `/dashboard`
+
+2. **Authenticated User**:
+   - Lands on `/` → Redirected to `/dashboard`
+   - Can access all protected routes
+   - Logout → Redirected to `/login`
+
+3. **Token Persistence**:
+   - JWT stored in `localStorage`
+   - Auto-authentication check on app mount
+   - Token sent with every API request via interceptor
 ## 🚧 Future Enhancements
 
 - [ ] Spaced repetition algorithm for flashcards
@@ -398,11 +558,24 @@ The application includes comprehensive error handling:
 
 ## 🙏 Acknowledgments
 
-- [Google Gemini AI](https://ai.google.dev/) for powering the AI features
-- [MongoDB](https://www.mongodb.com/) for the database
-- [Express.js](https://expressjs.com/) for the backend framework
-- [React](https://react.dev/) for the frontend framework
+### Core Technologies
+- [Google Gemini AI](https://ai.google.dev/) - Powers all AI features (flashcards, quizzes, chat, summaries)
+- [MongoDB](https://www.mongodb.com/) - NoSQL database for flexible data storage
+- [Express.js](https://expressjs.com/) - Fast, minimalist backend framework
+- [React](https://react.dev/) - Component-based frontend library
+- [Node.js](https://nodejs.org/) - JavaScript runtime
 
+### Key Libraries & Tools
+- [Mongoose](https://mongoosejs.com/) - Elegant MongoDB object modeling
+- [Vite](https://vitejs.dev/) - Next-generation frontend tooling
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Lucide Icons](https://lucide.dev/) - Beautiful, consistent icon library
+- [React Router](https://reactrouter.com/) - Client-side routing
+- [Axios](https://axios-http.com/) - Promise-based HTTP client
+- [React Hot Toast](https://react-hot-toast.com/) - Lightweight toast notifications
+- [bcryptjs](https://www.npmjs.com/package/bcryptjs) - Password hashing
+- [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken) - JWT authentication
+- [pdf-parse](https://www.npmjs.com/package/pdf-parse) - PDF text extraction
 ## 📧 Contact
 
 For questions or support, please open an issue in the GitHub repository.
