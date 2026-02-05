@@ -19,7 +19,7 @@ const storage = multer.diskStorage({
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, `${uniqueSuffix} - ${file.originalname}`);
+        cb(null, `temp-${uniqueSuffix}.pdf`);
     }
 });
 
@@ -34,7 +34,7 @@ const fileFilter = ( req, file, cb) => {
 };
 
 //Configure multer
-const upload = multer({
+export const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
@@ -42,4 +42,3 @@ const upload = multer({
     }
 });
 
-export default upload;
