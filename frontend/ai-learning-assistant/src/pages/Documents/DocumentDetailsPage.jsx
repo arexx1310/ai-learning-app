@@ -1,22 +1,21 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import documentService from '../../services/documentService';
 import Spinner from '../../components/common/Spinner';
 import toast from 'react-hot-toast';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, FileText, BookOpen } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
 import Tabs from '../../components/common/Tabs';
 import ChatInterface from '../../components/chat/ChatInterface';
 import AIActions from '../../components/ai/AIActions';
 import FlashcardManager from '../../components/flashcards/FlashcardManager';
 import QuizManager from '../../components/quizzes/QuizManager';
+
 const DocumentDetailPage = () => {
   const { id } = useParams();
   const [document, setDocument] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Content');
-  
-  
 
   useEffect(() => {
     const fetchDocumentDetails = async () => {
@@ -33,83 +32,77 @@ const DocumentDetailPage = () => {
 
     fetchDocumentDetails();
   }, [id]);
- 
-  // Helper functiont to get the full PDF URL
-  const getPdfUrl = () => {
-    if(!document?.data?.filePath) return null;
-
-    const filePath = document.data.filePath;
-    
-    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
-      return filePath;
-    }
-
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-    return `${baseUrl}${filePath.startsWith('/') ? '':'/'}${filePath}`;
-  };
 
   /* ---------------- TAB RENDERERS ---------------- */
   const renderContent = () => {
     if (loading) {
-        return <Spinner/>
-
+      return <Spinner />;
     }
-    if (!document || !document.data || !document.data.filePath) {
-        return <div className="">PDF not available</div>
+    
+    if (!document || !document.data || !document.data.extractedText) {
+      return (
+        <div className="text-center p-8 text-slate-500">
+          No content available
+        </div>
+      );
     }
 
-    const pdfUrl = getPdfUrl();
+    const text = document.data.extractedText;
+    const wordCount = text.split(/\s+/).length;
+    const charCount = text.length;
 
     return (
       <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm animate-in fade-in zoom-in-95 duration-500">
-        <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-200">
-          <span className="text-sm font-bold text-slate-700 uppercase tracking-wider">
-            Document Viewer
-          </span>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-6 py-4 bg-slate-50 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <FileText className="text-emerald-600" size={20} strokeWidth={2.5} />
+            <span className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+              Extracted Content
+            </span>
+          </div>
 
-          <a
-            href={pdfUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700 font-bold transition-all hover:scale-105"
-          >
-            <ExternalLink size={16} strokeWidth={2.5} />
-            Open in new tab
-          </a>
+          <div className="flex items-center gap-4 text-sm text-slate-600">
+            <div className="flex items-center gap-2">
+              <BookOpen size={16} />
+              <span>{wordCount.toLocaleString()} words</span>
+            </div>
+            <div className="text-slate-400">•</div>
+            <div>{charCount.toLocaleString()} characters</div>
+          </div>
         </div>
 
-        <div className="bg-slate-200 p-2 md:p-4">
-          <iframe
-            src={pdfUrl}
-            className="w-full h-[75vh] bg-white rounded-2xl shadow-inner"
-            title="PDF Viewer"
-            style={{
-                colorScheme: 'light',
-            }}
-          />
+        {/* Content */}
+        <div className="p-6 md:p-8 max-h-[75vh] overflow-y-auto bg-slate-50">
+          <div className="prose prose-slate max-w-none">
+            <div className="bg-white rounded-2xl shadow-sm p-8 border border-slate-200">
+              <pre className="whitespace-pre-wrap font-sans text-slate-700 leading-relaxed text-base">
+                {text}
+              </pre>
+            </div>
+          </div>
         </div>
       </div>
     );
   };
 
-const renderChat = () => {
-    return <ChatInterface/>
-};
+  const renderChat = () => {
+    return <ChatInterface />;
+  };
 
   const renderAIActions = () => {
-    return <AIActions/>
+    return <AIActions />;
   };
 
   const renderFlashcardsTab = () => {
-    return <FlashcardManager documentId={id}/>
+    return <FlashcardManager documentId={id} />;
   };
 
   const renderQuizzesTab = () => {
-    return <QuizManager documentId={id}/>
+    return <QuizManager documentId={id} />;
   };
 
   /* ---------------- TABS CONFIG ---------------- */
-
   const tabs = [
     { name: 'Content', label: 'Content', content: renderContent() },
     { name: 'Chat', label: 'Chat', content: renderChat() },
@@ -118,8 +111,7 @@ const renderChat = () => {
     { name: 'Quizzes', label: 'Quizzes', content: renderQuizzesTab() },
   ];
 
-  /* ---------------- GLOBAL STATES ---------------- */
-
+  /* ---------------- RENDER ---------------- */
   if (loading) {
     return <Spinner />;
   }
@@ -144,7 +136,7 @@ const renderChat = () => {
       </Link>
 
       {/* Header */}
-      <PageHeader title={document.title} />
+      <PageHeader title={document.data.title} />
 
       {/* Tabs */}
       <Tabs
