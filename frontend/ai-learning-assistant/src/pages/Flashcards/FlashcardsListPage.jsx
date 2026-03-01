@@ -60,17 +60,13 @@ const FlashcardsListPage = () => {
     return (
         <div className="min-h-screen bg-[#F8FAFC]">
             <div className="fixed inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] bg-size-[24px_24px] pointer-events-none" />
-
             <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-              
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
                     <PageHeader 
                         title="All Flashcard Sets" 
                     />
-                
                     <div className="hidden sm:block"></div> 
                 </div>
-
                 {renderContent()}
             </div>
         </div>
