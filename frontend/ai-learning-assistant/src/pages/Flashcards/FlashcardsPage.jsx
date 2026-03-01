@@ -12,7 +12,7 @@ import flashcardService from "../../services/flashcardService";
 import PageHeader from "../../components/common/PageHeader";
 import Spinner from "../../components/common/Spinner";
 import EmptyState from "../../components/common/EmptyState";
-import Button from "../../components/common/Button"; // Tumhara custom button
+import Button from "../../components/common/Button"; 
 import Modal from "../../components/common/Modal";
 import Flashcard from "../../components/flashcards/Flashcard";
 
@@ -43,14 +43,28 @@ const FlashcardsPage = () => {
         fetchFlashcards();
     }, [documentId]);
 
-    const handleNextCard = () => {
-        setCurrentCardIndex((prevIndex) => (prevIndex + 1) % flashcards.length);
-    };
-
     const handlePrevCard = () => {
-        setCurrentCardIndex((prevIndex) => (prevIndex - 1 + flashcards.length) % flashcards.length);
+        const newIndex = (currentCardIndex - 1 + flashcards.length) % flashcards.length;
+        setCurrentCardIndex(newIndex);
+        handleReviewCard(flashcards[currentCardIndex]._id);
     };
 
+    const handleNextCard = () => {
+        const newIndex = (currentCardIndex + 1) % flashcards.length;
+        setCurrentCardIndex(newIndex);
+        handleReviewCard(flashcards[currentCardIndex]._id);
+    };
+
+
+    const handleReviewCard = async (cardId) => {
+        if (!cardId) return;
+        try {
+            await flashcardService.reviewFlashcard(cardId);
+            console.log("Card marked as reviewed");
+        } catch (error) {
+            console.error("Failed to update reviewed status", error);
+        }
+    };
     const handleToggleStar = async (cardId) => {
         try {
             await flashcardService.toggleStar(cardId);
@@ -63,7 +77,7 @@ const FlashcardsPage = () => {
             toast.error("Failed to update star.");
         }
     };
-
+    
     const handleDeleteFlashcardSet = async () => {
         setDeleting(true);
         try {
@@ -99,7 +113,6 @@ const FlashcardsPage = () => {
                 {/* Flashcard Component */}
                 <Flashcard flashcard={currentCard} onToggleStar={handleToggleStar} />
 
-                {/* Your Custom Navigation Bar using your Button Component */}
                 <div className="flex items-center justify-between mt-8 bg-slate-50 p-4 rounded-2xl border border-slate-100 w-full">
                     <Button
                         variant="secondary"
