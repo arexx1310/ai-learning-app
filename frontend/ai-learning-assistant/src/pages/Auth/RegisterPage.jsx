@@ -37,141 +37,132 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-50">
-            <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[16px_16px] opacity-30" />
+        <div className="relative min-h-screen w-full flex items-center justify-center p-6 overflow-hidden bg-slate-950">
+        
+            {/* The Glass Card - Matching Login Page exactly */}
+            <div className="relative w-full max-w-lg bg-slate-900/40 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] p-8 md:p-12 overflow-hidden">
+                
+                {/* Glossy Overlay Reflect */}
+                <div className="absolute top-0 left-0 w-full h-32 bg-linear-to-b from-white/5 to-transparent pointer-events-none" />
 
-            <div className="relative w-full max-w-md px-6">
-                <div className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-3xl shadow-xl shadow-slate-200/50 p-10">
-                    {/* Header */}
-                    <div className="text-center mb-10">
-                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-linear-to-br from-emerald-400 to-teal-500 shadow-lg shadow-emerald-500/25 mb-6">
-                            <BrainCircuit className="w-7 h-7 text-white" strokeWidth={2} />
+                <div className="relative z-10">
+                    {/* Header - Styled with Emerald/Teal Gradient for Registration */}
+                    <div className="flex flex-col items-center mb-10">
+                        <div className="w-16 h-16 rounded-2xl bg-linear-to-tr from-emerald-500 via-teal-500 to-cyan-500 p-0.5 shadow-xl shadow-emerald-500/20 rotate-3 hover:rotate-0 transition-transform duration-500">
+                            <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+                                <BrainCircuit className="w-8 h-8 text-white" strokeWidth={1.5} />
+                            </div>
                         </div>
-                        <h1 className="text-2xl font-medium text-slate-900 tracking-tight mb-2">
-                            Create an account
+                        <h1 className="mt-6 text-3xl font-bold bg-linear-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent tracking-tight">
+                            Create Account
                         </h1>
-                        <p className="text-slate-500 text-sm">
-                            Start your AI-powered learning experience
-                        </p>
                     </div>
 
-                    {/* Form */}
+                    {/* Form Elements */}
                     <div className="space-y-5">
                         {/* Username Field */}
                         <div className="space-y-2">
-                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
-                                Username
-                            </label>
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Username</label>
                             <div className="relative group">
-                                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-200 ${focusedField === "username" ? "text-emerald-500" : "text-slate-400"}`}>
-                                    <User className="h-5 w-5" strokeWidth={2} />
-                                </div>
+                                <User className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-all duration-300 ${focusedField === 'username' ? 'text-emerald-400 scale-110' : 'text-slate-500'}`} />
                                 <input
                                     type="text"
                                     value={userName}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    onFocus={() => setFocusField("username")}
+                                    onFocus={() => setFocusField('username')}
                                     onBlur={() => setFocusField(null)}
-                                    className="w-full h-12 pl-12 pr-4 border-2 border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-500/10"
                                     placeholder="yourusername"
+                                    className="w-full bg-slate-950/50 border border-white/10 text-white text-sm rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all shadow-inner placeholder:text-slate-600"
                                 />
                             </div>
                         </div>
 
                         {/* Email Field */}
                         <div className="space-y-2">
-                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
-                                Email
-                            </label>
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Email</label>
                             <div className="relative group">
-                                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-200 ${focusedField === "email" ? "text-emerald-500" : "text-slate-400"}`}>
-                                    <Mail className="h-5 w-5" strokeWidth={2} />
-                                </div>
+                                <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-all duration-300 ${focusedField === 'email' ? 'text-emerald-400 scale-110' : 'text-slate-500'}`} />
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    onFocus={() => setFocusField("email")}
+                                    onFocus={() => setFocusField('email')}
                                     onBlur={() => setFocusField(null)}
-                                    className="w-full h-12 pl-12 pr-4 border-2 border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-500/10"
-                                    placeholder="your@example.com"
+                                    placeholder="name@example.com"
+                                    className="w-full bg-slate-950/50 border border-white/10 text-white text-sm rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all shadow-inner placeholder:text-slate-600"
                                 />
                             </div>
                         </div>
 
                         {/* Password Field */}
                         <div className="space-y-2">
-                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
-                                Password
-                            </label>
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
                             <div className="relative group">
-                                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-200 ${focusedField === "password" ? "text-emerald-500" : "text-slate-400"}`}>
-                                    <Lock className="h-5 w-5" strokeWidth={2} />
-                                </div>
+                                <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-all duration-300 ${focusedField === 'password' ? 'text-emerald-400 scale-110' : 'text-slate-500'}`} />
                                 <input
-                                    type={showPassword ? "text" : "password"} // Dynamic Input Type
+                                    type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    onFocus={() => setFocusField("password")}
+                                    onFocus={() => setFocusField('password')}
                                     onBlur={() => setFocusField(null)}
-                                    className="w-full h-12 pl-12 pr-12 border-2 border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-500/10"
                                     placeholder="••••••••"
+                                    className="w-full bg-slate-950/50 border border-white/10 text-white text-sm rounded-2xl py-4 pl-12 pr-12 outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all shadow-inner placeholder:text-slate-600"
                                 />
-                                {/* Show/Hide Toggle Button */}
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-emerald-500 transition-colors duration-200"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-emerald-400 transition-colors"
                                 >
-                                    {showPassword ? (
-                                        <EyeOff className="h-5 w-5" strokeWidth={2} />
-                                    ) : (
-                                        <Eye className="h-5 w-5" strokeWidth={2} />
-                                    )}
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </button>
                             </div>
                         </div>
 
                         {error && (
-                            <div className="p-3 rounded-lg bg-red-50 border border-red-100">
-                                <p className="text-xs text-red-600 font-medium text-center">{error}</p>
+                            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 animate-shake">
+                                <p className="text-xs text-rose-400 font-semibold text-center">{error}</p>
                             </div>
                         )}
 
                         <button
                             onClick={handleSubmit}
                             disabled={loading}
-                            className="group relative w-full h-12 bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 active:scale-[0.98] text-white text-sm font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/25 overflow-hidden">
-                            <span className="relative z-10 flex items-center justify-center gap-2">
+                            className="group relative w-full h-14 bg-linear-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-bold rounded-2xl shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-300 overflow-hidden"
+                        >
+                            <div className="absolute inset-0 w-full h-full bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                            
+                            <div className="flex items-center justify-center gap-3">
                                 {loading ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        <span>Creating Account...</span>
-                                    </>
+                                    <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
                                 ) : (
                                     <>
-                                        <span>Create Account</span>
-                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" strokeWidth={2.5} />
+                                        <span className="tracking-wide">Create Account</span>
+                                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                     </>
                                 )}
-                            </span>
-                            <div className="absolute inset-0 bg-linear-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                            </div>
                         </button>
                     </div>
 
-                    {/* Footer */}
-                    <div className="mt-8 pt-6 border-t border-slate-200">
-                        <p className="text-center text-sm text-slate-600">
+                    <div className="mt-10 flex flex-col items-center gap-6">
+                        <p className="text-sm text-slate-400 font-medium">
                             Already have an account?{' '}
-                            <Link to='/login' className="font-semibold text-emerald-600 hover:text-emerald-700 transition-colors duration-200">
+                            <Link to='/login' className="text-emerald-400 hover:text-teal-400 font-bold decoration-2 underline underline-offset-4 transition-colors">
                                 Sign In
                             </Link>
                         </p>
+
+                        {/* Footer Copyright Section */}
+                        <div className="w-full pt-6 border-t border-white/5 flex flex-col items-center">
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600">
+                                © {new Date().getFullYear()} ARCHI DANVA
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    );
+    )
 };
 
 export default RegisterPage;
