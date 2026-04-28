@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Play, BarChart2, Trash2, Award } from 'lucide-react';
+import { Play, BarChart2, Trash2, Award, RotateCcw } from 'lucide-react';
 import moment from 'moment';
 
-const QuizCard = ({ quiz, onDelete }) => {
+const QuizCard = ({ quiz, onDelete, onRetake }) => {
     return (
         <div className="group relative bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-3xl p-6 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-1">
             {/* Improved Trash Button Animation */}
@@ -53,12 +53,24 @@ const QuizCard = ({ quiz, onDelete }) => {
             {/* Action Button */}
             <div className="mt-6 relative z-10">
                 {quiz?.userAnswers?.length > 0 ? (
-                    <Link to={`/quizzes/${quiz._id}/results`} className="block">
-                        <button className="w-full inline-flex items-center justify-center gap-2 h-11 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-2xl transition-all active:scale-95 shadow-lg shadow-slate-200">
-                            <BarChart2 className="w-4 h-4" strokeWidth={2.5} />
-                            View Results
+                    <div className="flex flex-col gap-2">
+                        <Link to={`/quizzes/${quiz._id}/results`} className="block">
+                            <button className="w-full inline-flex items-center justify-center gap-2 h-11 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-2xl transition-all active:scale-95 shadow-lg shadow-slate-200">
+                                <BarChart2 className="w-4 h-4" strokeWidth={2.5} />
+                                View Results
+                            </button>
+                        </Link>
+                        <button
+                            onClick={() => onRetake(quiz)}
+                            className="group/btn relative w-full inline-flex items-center justify-center gap-2 h-11 bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-sm rounded-2xl transition-all active:scale-95 shadow-lg shadow-emerald-500/25 overflow-hidden"
+                        >
+                            <span className="flex items-center gap-2 relative z-10">
+                                <RotateCcw className="w-4 h-4" strokeWidth={2.5} />
+                                Retake Quiz
+                            </span>
+                            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:animate-[shimmer_1.5s_infinite] transition-transform" />
                         </button>
-                    </Link>
+                    </div>
                 ) : (
                     <Link to={`/quizzes/${quiz._id}`} className="block">
                         <button className="group/btn relative w-full inline-flex items-center justify-center gap-2 h-11 bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-sm rounded-2xl transition-all active:scale-95 shadow-lg shadow-emerald-500/25 overflow-hidden">
@@ -66,7 +78,6 @@ const QuizCard = ({ quiz, onDelete }) => {
                                 <Play className="w-4 h-4 fill-current" strokeWidth={2.5} />
                                 Start Quiz
                             </span>
-                            {/* Animated Shine Effect */}
                             <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:animate-[shimmer_1.5s_infinite] transition-transform" />
                         </button>
                     </Link>

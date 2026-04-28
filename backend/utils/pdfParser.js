@@ -1,27 +1,24 @@
-import fs from "fs/promises";
-import {PDFParse} from "pdf-parse";
+import { PDFParse } from 'pdf-parse';
 
 /**
- * Extract text form PDF file
- * @param {string} filePath - Path to PDF file
- * @return {Promise<{text: string, numPages: number}>}
+ * Extract text from a PDF buffer
+ * @param {Buffer} buffer - PDF file buffer from multer memoryStorage
+ * @returns {Promise<{text: string, numPages: number}>}
  */
-export const extractTextFromPDF = async (filePath) => {
+export const extractTextFromPDF = async (buffer) => {
     try {
-        const dataBuffer = await fs.readFile(filePath);
-        // pdf-parse expects a Uint8Array, not a Buffer
-        const parser = new PDFParse(new Uint8Array(dataBuffer));
-
-        const data = await parser.getText();
+        // pdf-parse accepts either a URL or a buffer via the `data` option
+        const parser = new PDFParse({ data: buffer });
+        const result = await parser.getText();
+        await parser.destroy();
 
         return {
-            text: data.text,
-            numPages: data.numpage,
-            info: data.info,
+            text: result.text,
+            numPages: result.numpage,
+            info: result.info,
         };
     } catch (error) {
-        console.error("PDF parsing error:")
-        throw new Error("Failed to extract text form PDF");
+        console.error('PDF parsing error:', error);
+        throw new Error('Failed to extract text from PDF');
     }
 };
-

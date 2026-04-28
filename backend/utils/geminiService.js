@@ -213,7 +213,10 @@ export const explainConcept = async (concept, context) => {
     Include examples if relevant.
     
     Context:
-    ${context.substring(0,10000)}`;
+    ${context.substring(0,10000)}
+    
+    If the question is not relevant to the context then politely inform the user and explain the asked question 
+    in a fun but short answer only if it is a appropriate and non-offensive question. `;
 
     try {
         const response = await ai.models.generateContent({

@@ -3,17 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FileText, Trash2, BookOpen, BrainCircuit, Clock, ChevronRight } from 'lucide-react';
 import moment from 'moment';
 
-const formatFileSize = (bytes) => {
-    if (!bytes) return '0 B';
-    const units = ['B', 'KB', 'MB', 'GB'];
-    let size = bytes;
-    let unitIndex = 0;
-    while (size >= 1024 && unitIndex < units.length - 1) {
-        size /= 1024;
-        unitIndex++;
-    }
-    return `${size.toFixed(1)} ${units[unitIndex]}`;
-};
+
 
 const DocumentCard = ({ document, onDelete }) => {
     const navigate = useNavigate();
@@ -41,12 +31,9 @@ const DocumentCard = ({ document, onDelete }) => {
                 <h3 className="text-lg font-bold text-slate-900 mb-1 line-clamp-2 group-hover:text-blue-600 transition-colors" title={document.title}>
                     {document.title}
                 </h3>
-                <span className="inline-block text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-500 rounded uppercase tracking-wider mb-4">
-                    {formatFileSize(document.fileSize)}
-                </span>
-
+                
                 {/* Stats Section */}
-                <div className="grid grid-cols-2 gap-3 mb-5">
+                <div className="grid grid-cols-2 py-2 gap-3 mb-5">
                     {/* Flashcard Stat Box */}
                     <div className="flex items-center gap-2 p-2.5 bg-blue-50/50 border border-blue-100 rounded-xl group-hover:bg-blue-50 transition-colors">
                         <div className="p-1.5 bg-blue-100 text-blue-600 rounded-lg">

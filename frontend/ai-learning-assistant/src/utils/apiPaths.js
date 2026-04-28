@@ -41,6 +41,7 @@ export const API_PATHS ={
         SUBMIT_QUIZ: (id) => `/api/quizzes/${id}/submit`,
         GET_QUIZ_RESULTS: (id) => `/api/quizzes/${id}/results`,
         DELETE_QUIZ: (id) => `/api/quizzes/${id}`,
+        RETAKE_QUIZ: (id) => `/api/quizzes/${id}/retake`,
     },
 
     PROGRESS: {

@@ -60,20 +60,34 @@ const QuizManager = ({documentId}) => {
     };
 
     const handleConfirmDelete = async () => {
-    if (!selectedQuiz) return;
-    setDeleting(true);
-    try {
-        await quizService.deleteQuiz(selectedQuiz._id);
-        toast.success(`'${selectedQuiz.title || 'Quiz'} deleted`);
-        setIsDeleteModalOpen(false);
-        setSelectedQuiz(null);
-        setQuizzes(quizzes.filter(q => q._id !== selectedQuiz._id));
-    } catch (error) {
-        toast.error(error.message || 'Failed to delete quiz');
-    } finally {
-        setDeleting(false);
-    }
-};
+        if (!selectedQuiz) return;
+        setDeleting(true);
+        try {
+            await quizService.deleteQuiz(selectedQuiz._id);
+            toast.success(`'${selectedQuiz.title || 'Quiz'} deleted`);
+            setIsDeleteModalOpen(false);
+            setSelectedQuiz(null);
+            setQuizzes(quizzes.filter(q => q._id !== selectedQuiz._id));
+        } catch (error) {
+            toast.error(error.message || 'Failed to delete quiz');
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    const handleRetakeQuiz = async (quiz) => {
+        try {
+            await quizService.retakeQuiz(quiz._id);
+            setQuizzes(prev =>
+                prev.map(q =>
+                    q._id === quiz._id ? { ...q, userAnswers: [], score: null } : q
+                )
+            );
+            toast.success('Quiz reset! You can start again.');
+        } catch (error) {
+            toast.error(error.message || 'Failed to retake quiz.');
+        }
+    };
 
 const renderQuizContent = () => {
     if (loading) {
@@ -98,7 +112,7 @@ const renderQuizContent = () => {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {quizzes.map((quiz) => (
-                <QuizCard key={quiz._id} quiz={quiz} onDelete={handleDeleteRequest} />
+                <QuizCard key={quiz._id} quiz={quiz} onDelete={handleDeleteRequest} onRetake={handleRetakeQuiz} />
             ))}
         </div>
     );
@@ -144,7 +158,6 @@ return (
                             className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-slate-900 font-semibold focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all"
                             placeholder="Enter amount (e.g. 5)"
                         />
-                        
                     </div>
                     <p className="text-[11px] text-slate-400 ml-1">
                         AI will scan your document to create unique questions.

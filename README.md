@@ -196,7 +196,7 @@ backend/
 ### Frontend Structure
 
 ```
-frontend/ai=learning-assistant
+frontend/ai-learning-assistant
 ├── src/
 │   ├── utils/
 │   │   ├── apiPaths.js      # API endpoint definitions

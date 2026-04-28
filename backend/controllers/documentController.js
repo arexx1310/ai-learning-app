@@ -6,13 +6,34 @@ import { chunkText } from '../utils/textChunker.js';
 import mongoose from 'mongoose';
 import fs from 'fs/promises';
 
+import supabase from '../config/supabase.js';
+import { Readable } from 'stream';
+
+const uploadToSupabase = async (buffer, fileName) => {
+  const cleanName = fileName.replace(/\s+/g, '_');
+  const filePath = `${Date.now()}-${cleanName}`;
+
+  console.log("Bucket:", "documents");
+  console.log("FilePath:", filePath);
+
+  const { data, error } = await supabase.storage
+    .from('documents')
+    .upload(filePath, buffer, {
+      contentType: 'application/pdf'
+    });
+
+  console.log("Supabase response:", data, error);
+
+  if (error) throw error;
+
+  return { filePath };
+};
 // @desc Upload PDF document
 // @route POST /api/documents/upload
 // @access Private
 export const uploadDocument = async (req, res, next) => {
-    let localFilePath = null;
-
     try {
+
         if (!req.file) {
             return res.status(400).json({
                 success: false,
@@ -22,10 +43,8 @@ export const uploadDocument = async (req, res, next) => {
         }
         
         const { title } = req.body;
-        localFilePath = req.file.path;
         
         if (!title) {
-            await fs.unlink(localFilePath);
             return res.status(400).json({
                 success: false,
                 error: 'Please provide a document title',
@@ -33,14 +52,22 @@ export const uploadDocument = async (req, res, next) => {
             });
         }
 
-        console.log('Extracting text from PDF...');
-        
-        // Extract text
-        const { text, numPages } = await extractTextFromPDF(localFilePath);
-        console.log(`Extracted ${text.length} characters from ${numPages} pages`);
+        const fileBuffer = req.file.buffer;
+
+         // Upload to Supabase (runs in parallel with text extraction below)
+      
+        console.log("Uploading Document To Supabase....")
+
+        const [supabaseResult, extractedData] = await Promise.all([
+            uploadToSupabase(fileBuffer, req.file.originalname),
+            extractTextFromPDF(fileBuffer)
+        ]);
+
+        console.log('File stored at:', supabaseResult.filePath);
+        console.log(`Extracted ${extractedData.text.length} characters`);
 
         // Create chunks
-        const chunks = chunkText(text, 500, 50);
+        const chunks = chunkText(extractedData.text, 500, 50);
         console.log('Created', chunks.length, 'chunks');
 
         // Save document with text only
@@ -48,14 +75,11 @@ export const uploadDocument = async (req, res, next) => {
             userId: req.user._id,
             title,
             fileName: req.file.originalname,
-            extractedText: text,
+            filePath: supabaseResult.filePath,
+            extractedText: extractedData.text,
             chunks: chunks,
             status: 'ready'
         });
-
-        // Delete temp file
-        await fs.unlink(localFilePath);
-        console.log('Temp file deleted');
 
         res.status(201).json({
             success: true,
@@ -71,10 +95,6 @@ export const uploadDocument = async (req, res, next) => {
 
     } catch (error) {
         console.error('Upload error:', error);
-        
-        if (localFilePath) {
-            await fs.unlink(localFilePath).catch(() => {});
-        }
         
         next(error);
     }
@@ -177,6 +197,20 @@ export const getDocument = async (req, res, next) => {
         documentData.flashcardCount = flashcardCount;
         documentData.quizCount = quizCount;
 
+        let fileUrl = null;
+
+        const { data, error: supabaseError } = await supabase.storage
+            .from('documents')
+            .createSignedUrl(document.filePath, 60 * 10);
+
+        if (supabaseError) {
+            console.error('Supabase error:', supabaseError.message);
+        } else {
+            fileUrl = data.signedUrl;
+        }
+
+        documentData.fileUrl = fileUrl;
+
         res.status(200).json({
             success: true,
             data: documentData
@@ -203,6 +237,16 @@ export const deleteDocument = async (req, res, next) => {
                 success: false, 
                 error: 'Document not found' 
             });
+        }
+
+        // Delete from Supabasefirst
+        const { error } = await supabase.storage
+            .from('documents')
+            .remove([document.filePath]);
+
+         if (error) {
+            console.error('Supabase delete error:', error);
+            throw error;
         }
 
         await Document.findByIdAndDelete(document._id);

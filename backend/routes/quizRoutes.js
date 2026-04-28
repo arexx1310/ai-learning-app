@@ -5,7 +5,9 @@ import {
     getQuizById,
     submitQuiz,
     getQuizResults,
-    deleteQuiz
+    deleteQuiz,
+    retakeQuiz,
+    exportQuizzesToDocx
 } from '../controllers/quizController.js';
 
 import protect from '../middleware/auth.js';
@@ -20,6 +22,8 @@ router.get('/:documentId', getQuizzes);
 router.get('/quiz/:id',getQuizById);
 router.post('/:id/submit', submitQuiz);
 router.get('/:id/results', getQuizResults);
+router.patch('/:id/retake', retakeQuiz);  
+router.get('/:documentId/export', exportQuizzesToDocx);
 router.delete('/:id',deleteQuiz);
 
 export default router;

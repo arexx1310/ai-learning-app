@@ -46,14 +46,24 @@ const deleteQuiz = async (quizId) => {
     }
 };
 
+const retakeQuiz = async (quizId) => {
+    try {
+        const response = await axiosInstance.patch(API_PATHS.QUIZZES.RETAKE_QUIZ(quizId));
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || { message: 'Failed to retake quiz' };
+    }
+};
+
+
 const quizService = {
     getQuizzesforDocument,
     getQuizById,
     submitQuiz,
     getQuizResults,
     deleteQuiz,
-    
-}
+    retakeQuiz,  
+};
 
 export default quizService;
 
