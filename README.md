@@ -5,12 +5,15 @@ An intelligent document-based learning platform that leverages Google's Gemini A
 ## ✨ Features
 
 ### 🎯 Core Functionality
-- **PDF Document Upload & Processing**: Upload and parse PDF documents with automatic text extraction and intelligent chunking
-- **AI-Powered Flashcard Generation**: Create customized flashcards with difficulty levels (easy, medium, hard)
-- **Interactive Quiz System**: Generate multiple-choice quizzes with explanations and instant scoring
-- **Document Summarization**: Get concise summaries highlighting key concepts and main ideas
-- **Chat with Documents**: Ask questions about your documents and receive context-aware answers
-- **Concept Explanation**: Deep-dive into specific concepts with AI-generated explanations
+All AI features are powered by Google Gemini AI (`gemini-2.5-flash-lite`).
+
+- **PDF Document Upload & Processing**: Securely upload PDF documents — text is automatically extracted, cleaned, and split into intelligent overlapping chunks ready for AI processing
+- **Flashcard Generation**: Analyses your document and generates structured Q&A flashcards, each automatically tagged with a difficulty level (easy, medium, or hard)
+- **Quiz Generation**: Produces contextual multiple-choice questions with four options, a correct answer, and an explanation — instantly scored on submission
+- **Document Summarization**: Reads the full extracted text and returns a concise, structured summary highlighting the key concepts and main ideas
+- **Chat with Documents**: Ask any question about your document — relevant chunks are retrieved and used as context, giving you accurate, document-grounded answers with persistent chat history
+- **Concept Explainer**: Enter any concept and get a detailed explanation grounded in the most relevant sections of your document, with examples where applicable
+
 
 ### 📊 Learning Features
 - **Progress Dashboard**: Track your learning statistics and study activity
