@@ -72,7 +72,7 @@ app.use('/api/quizzes', apiLimiter, quizRoutes);
 app.use('/api/progress', apiLimiter, progressRoutes);
 
 
-app.use(errorHandler);
+
 
 
 //404 handler
@@ -84,6 +84,8 @@ app.use((req,res)=>{
         statusCode: 404
     });
 });
+
+app.use(errorHandler);
 
 //Start Server
 
