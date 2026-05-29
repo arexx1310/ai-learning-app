@@ -29,12 +29,15 @@ app.set('trust proxy', 1);
 connectDB();
 
 app.use(
-    cors({
-        origin: `${process.env.FRONTEND_URL}`,
-        methods: ["GET", "POST","PUT","PATCH","DELETE"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-        credentials: true,
-    })
+  cors({
+    origin: [
+      "https://ailearnassist.netlify.app",
+      "https://ai-learning-app-sigma.vercel.app",
+    ],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
 );
 
 app.use(express.json());
