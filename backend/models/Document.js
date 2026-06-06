@@ -17,7 +17,6 @@ const documentSchema = new mongoose.Schema({
     },
     filePath: {
         type: String,
-        required: true
     },
     extractedText: {
         type: String,

@@ -4,80 +4,68 @@ import Quiz from '../models/Quiz.js';
 import { extractTextFromPDF } from '../utils/pdfParser.js';
 import { chunkText } from '../utils/textChunker.js';
 import mongoose from 'mongoose';
-import fs from 'fs/promises';
-
 import supabase from '../config/supabase.js';
-import { Readable } from 'stream';
 
 const uploadToSupabase = async (buffer, fileName) => {
-  const cleanName = fileName.replace(/\s+/g, '_');
-  const filePath = `${Date.now()}-${cleanName}`;
+    const cleanName = fileName.replace(/\s+/g, '_');
+    const filePath = `${Date.now()}-${cleanName}`;
 
-  console.log("Bucket:", "documents");
-  console.log("FilePath:", filePath);
+    const { data, error } = await supabase.storage
+        .from('documents')
+        .upload(filePath, buffer, { contentType: 'application/pdf' });
 
-  const { data, error } = await supabase.storage
-    .from('documents')
-    .upload(filePath, buffer, {
-      contentType: 'application/pdf'
-    });
+    if (error) throw error;
 
-  console.log("Supabase response:", data, error);
-
-  if (error) throw error;
-
-  return { filePath };
+    return { filePath };
 };
+
 // @desc Upload PDF document
 // @route POST /api/documents/upload
 // @access Private
 export const uploadDocument = async (req, res, next) => {
     try {
-
         if (!req.file) {
-            return res.status(400).json({
-                success: false,
-                error: 'Please upload a PDF file',
-                statusCode: 400
-            });
+            return res.status(400).json({ success: false, error: 'Please upload a PDF file', statusCode: 400 });
         }
-        
+
         const { title } = req.body;
-        
         if (!title) {
-            return res.status(400).json({
-                success: false,
-                error: 'Please provide a document title',
-                statusCode: 400
-            });
+            return res.status(400).json({ success: false, error: 'Please provide a document title', statusCode: 400 });
         }
 
         const fileBuffer = req.file.buffer;
 
-         // Upload to Supabase (runs in parallel with text extraction below)
-      
-        console.log("Uploading Document To Supabase....")
-
-        const [supabaseResult, extractedData] = await Promise.all([
-            uploadToSupabase(fileBuffer, req.file.originalname),
+        // Run Supabase upload and text extraction concurrently,
+        // treat Supabase as non-critical — settle both regardless
+        const [supabaseOutcome, extractedData] = await Promise.all([
+            uploadToSupabase(fileBuffer, req.file.originalname)
+                .catch(err => {
+                    console.warn('Supabase upload failed (non-critical):', err.message);
+                    return null;
+                }),
             extractTextFromPDF(fileBuffer)
         ]);
 
-        console.log('File stored at:', supabaseResult.filePath);
+        const filePath = supabaseOutcome?.filePath ?? null;
+
+        if (filePath) {
+            console.log('File stored at:', filePath);
+        } else {
+            console.log('Document saved without remote file path');
+        }
+
         console.log(`Extracted ${extractedData.text.length} characters`);
 
-        // Create chunks
         const chunks = chunkText(extractedData.text, 500, 50);
         console.log('Created', chunks.length, 'chunks');
 
-        // Save document with text only
         const document = await Document.create({
             userId: req.user._id,
             title,
             fileName: req.file.originalname,
-            filePath: supabaseResult.filePath,
+            filePath,
             extractedText: extractedData.text,
-            chunks: chunks,
+            chunks,
             status: 'ready'
         });
 
@@ -88,14 +76,14 @@ export const uploadDocument = async (req, res, next) => {
                 title: document.title,
                 fileName: document.fileName,
                 uploadDate: document.uploadDate,
-                status: document.status
+                status: document.status,
+                fileStored: !!filePath
             },
             message: 'Document processed successfully'
         });
 
     } catch (error) {
         console.error('Upload error:', error);
-        
         next(error);
     }
 };
@@ -154,6 +142,7 @@ export const getDocuments = async (req, res, next) => {
             count: documents.length,
             data: documents
         });
+
     } catch (error) {
         console.error('Get documents error:', error);
         next(error);
@@ -178,35 +167,30 @@ export const getDocument = async (req, res, next) => {
             });
         }
 
-        // Get counts
-        const flashcardCount = await Flashcard.countDocuments({ 
-            documentId: document._id, 
-            userId: req.user._id 
-        });
-        const quizCount = await Quiz.countDocuments({ 
-            documentId: document._id, 
-            userId: req.user._id 
-        });
-        
-        // Update last accessed
+        const [flashcardCount, quizCount] = await Promise.all([
+            Flashcard.countDocuments({ documentId: document._id, userId: req.user._id }),
+            Quiz.countDocuments({ documentId: document._id, userId: req.user._id })
+        ]);
+
         document.lastAccessed = Date.now();
         await document.save();
 
-        // Return document with text
         const documentData = document.toObject();
         documentData.flashcardCount = flashcardCount;
         documentData.quizCount = quizCount;
 
         let fileUrl = null;
 
-        const { data, error: supabaseError } = await supabase.storage
-            .from('documents')
-            .createSignedUrl(document.filePath, 60 * 10);
+        if (document.filePath) {
+            const { data, error: supabaseError } = await supabase.storage
+                .from('documents')
+                .createSignedUrl(document.filePath, 60 * 10);
 
-        if (supabaseError) {
-            console.error('Supabase error:', supabaseError.message);
-        } else {
-            fileUrl = data.signedUrl;
+            if (supabaseError) {
+                console.warn('Supabase signed URL error:', supabaseError.message);
+            } else {
+                fileUrl = data.signedUrl;
+            }
         }
 
         documentData.fileUrl = fileUrl;
@@ -233,27 +217,28 @@ export const deleteDocument = async (req, res, next) => {
         });
 
         if (!document) {
-            return res.status(404).json({ 
-                success: false, 
-                error: 'Document not found' 
+            return res.status(404).json({
+                success: false,
+                error: 'Document not found'
             });
         }
 
-        // Delete from Supabasefirst
-        const { error } = await supabase.storage
-            .from('documents')
-            .remove([document.filePath]);
+        // Attempt Supabase deletion non-critically
+        if (document.filePath) {
+            const { error } = await supabase.storage
+                .from('documents')
+                .remove([document.filePath]);
 
-         if (error) {
-            console.error('Supabase delete error:', error);
-            throw error;
+            if (error) {
+                console.warn('Supabase delete failed (non-critical):', error.message);
+            }
         }
 
         await Document.findByIdAndDelete(document._id);
 
-        res.status(200).json({ 
-            success: true, 
-            message: 'Document deleted' 
+        res.status(200).json({
+            success: true,
+            message: 'Document deleted'
         });
 
     } catch (error) {
