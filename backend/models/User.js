@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, 'Please provide a password'],
-      minlength: [6, 'Password must be at least 6 characters long'],
+      minlength: [8, 'Password must be at least 8 characters long'],
       select: false,
     },
     profileImage: {
@@ -33,15 +33,12 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Correct pre-save hook
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
-
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Compare password
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
 };

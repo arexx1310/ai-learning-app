@@ -1,33 +1,24 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import { promisify } from 'util';
+
+const verifyAsync = promisify(jwt.verify);
 
 const protect = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader?.startsWith('Bearer ')) {
-    return res.status(401).json({ success: false, error: 'Not authorized, no token' });
-  }
-
-  const token = authHeader.split(' ')[1];
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const token = req.cookies?.token;
 
-    const user = await User.findById(decoded.id).select('-password');
-    if (!user) {
-      return res.status(401).json({ success: false, error: 'User not found' });
+    if (!token) {
+      return res.status(401).json({ success: false, error: 'Not authorized, no token' });
     }
 
-    req.user = user;
+    const decoded = await verifyAsync(token, process.env.JWT_SECRET);
+    req.user = { id: decoded.id };
     return next();
   } catch (error) {
-    console.error('Auth middleware error:', error.message);
-
     const message =
       error.name === 'TokenExpiredError' ? 'Token has expired' :
       error.name === 'JsonWebTokenError' ? 'Invalid token' :
       'Not authorized, token failed';
-
     return res.status(401).json({ success: false, error: message });
   }
 };

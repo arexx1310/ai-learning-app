@@ -3,12 +3,13 @@ import { GoogleGenAI } from '@google/genai';
 
 dotenv.config();
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY});
 
 if(!process.env.GEMINI_API_KEY) {
     console.error('FATAL ERROR: GEMINI__KEY is not set in the environment variables');
     process.exit(1);
 }
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY});
 
 /**
  * Generate flashcards from text
@@ -78,7 +79,7 @@ export const generateFlashcards = async (text, count = 10) => {
  */
 
 export const generateQuiz = async (text, numQuestions = 5) => {
-    const prompt = `Generate exact;y ${numQuestions} multiple choice question from the following text.
+    const prompt = `Generate exactly ${numQuestions} multiple choice question from the following text.
     Format each question as:
     Q: [Question]
     O1: [Option1]

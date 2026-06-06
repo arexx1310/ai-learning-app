@@ -10,7 +10,7 @@ const chatHistorySchema = new mongoose.Schema({
     documentId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Document',
-        required: 'true'
+        required: true
     },
     messages: [{
         role: {
@@ -39,6 +39,6 @@ const chatHistorySchema = new mongoose.Schema({
 
 chatHistorySchema.index({userId: 1, documentId: 1});
 
-const ChatHistory = mongoose.model('Chat History', chatHistorySchema);
+const ChatHistory = mongoose.model('ChatHistory', chatHistorySchema);
 
 export default ChatHistory;

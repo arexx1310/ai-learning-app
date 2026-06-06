@@ -60,7 +60,7 @@ export const chunkText = (text, chunkSize = 500 ,overlap = 50) => {
         }
 
         //If adding this paragrpah exceed chunk size, save current chunk
-        if( currentWordCount + paragraphWordCount > chunksIndex && currentChunk.length >0){
+        if (currentWordCount + paragraphWordCount > chunkSize && currentChunk.length > 0){
             chunks.push({
                 content: currentChunk.join('\n\n'),
                 chunkIndex: chunksIndex++,
@@ -141,8 +141,8 @@ export const findRelevantChunks = (chunks, query, maxChunks = 3) => {
         // Return clean chunk objects without Mongoose metadata 
         return chunks.slice(0, maxChunks).map(chunk => ({
             content: chunk.content,
-            chunkIndex: chunks.chunkIndex,
-            pageNumber: chunks.pageNumber,
+            chunkIndex: chunk.chunkIndex,
+            pageNumber: chunk.pageNumber,
             _id: chunk._id
         }));
     } 
@@ -201,7 +201,7 @@ export const findRelevantChunks = (chunks, query, maxChunks = 3) => {
             if( b.matchedWords !== a.matchedWords) {
                 return b.matchedWords - a.matchedWords;
             }
-            return a.chunkIndex = b.chunkIndex;
+            return a.chunkIndex - b.chunkIndex;
         })
         .slice( 0, maxChunks);
 

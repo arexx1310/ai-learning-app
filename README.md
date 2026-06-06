@@ -23,7 +23,7 @@ All AI features are powered by Google Gemini AI (`gemini-2.5-flash-lite`).
 - **Study Streak Tracking**: Monitor your learning consistency
 
 ### 🔐 User Management
-- Secure authentication with JWT tokens
+- Secure authentication with httpOnly cookies (XSS-safe — the token is never accessible to JavaScript)
 - User profiles with customizable settings
 - Password management and account security
 - Protected routes and authorization
@@ -35,7 +35,7 @@ All AI features are powered by Google Gemini AI (`gemini-2.5-flash-lite`).
 - **Framework**: Express.js
 - **Database**: MongoDB with Mongoose ODM
 - **AI Integration**: Google Gemini AI (gemini-2.5-flash-lite)
-- **Authentication**: JWT (JSON Web Tokens)
+- **Authentication**: JWT stored in httpOnly cookies
 - **Password Hashing**: bcryptjs
 - **PDF Processing**: pdf-parse
 - **Rate Limiting**: express-rate-limit
@@ -43,8 +43,8 @@ All AI features are powered by Google Gemini AI (`gemini-2.5-flash-lite`).
 ### Frontend
 - **Framework**: React 18
 - **Routing**: React Router DOM v6
-- **HTTP Client**: Axios
-- **Styling**: Tailwind CSS 
+- **HTTP Client**: Axios (with `withCredentials: true` for cookie transport)
+- **Styling**: Tailwind CSS
 - **State Management**: React Context API
 
 ## 📋 Prerequisites
@@ -97,7 +97,7 @@ MAX_FILE_SIZE=10485760
 
 # JWT Configuration
 JWT_SECRET=your_super_secret_jwt_key_here
-JWT_EXPIRE=7d
+JWT_EXPIRE=2d
 
 # Google Gemini AI
 GEMINI_API_KEY=your_gemini_api_key_here
@@ -162,16 +162,16 @@ The application will open at `http://localhost:5173`
 backend/
 ├── config/
     ├── db.js                # MongoDB connection
-│   └── multer.js            # Multer Configuration    
+│   └── multer.js            # Multer Configuration
 ├── controllers/
 │   ├── aiController.js         # AI feature controllers
 │   ├── authController.js       # Authentication logic
 │   ├── documentController.js   # Document management
-│   ├── flashcardController.js  #Flashcard Controllers
-│   ├── quizController.js       #Quiz Logic
-│   └── progressController.js   #Progress Tracking Controller
+│   ├── flashcardController.js  # Flashcard controllers
+│   ├── quizController.js       # Quiz logic
+│   └── progressController.js   # Progress tracking controller
 ├── middleware/
-│   ├── auth.js              # JWT authentication
+│   ├── auth.js              # JWT authentication (reads httpOnly cookie)
 │   └── errorHandlers.js     # Error handling
 ├── models/
 │   ├── User.js
@@ -203,7 +203,7 @@ frontend/ai-learning-assistant
 ├── src/
 │   ├── utils/
 │   │   ├── apiPaths.js      # API endpoint definitions
-│   │   └── axiosConfig.js   # Axios instance & interceptors
+│   │   └── axiosInstances.js # Axios instance & interceptors
 │   ├── components/
 │   │   └── ai/
 │   │       └── AIActions.jsx
@@ -253,23 +253,23 @@ frontend/ai-learning-assistant
 │   │   │   └── ProfilePage.jsx
 │   │   └── NotFoundPage.jsx
 │   ├── services/
-│   │       ├── aiService.jsx
-│   │       ├── authService.jsx
-│   │       ├── documentService.jsx
-│   │       ├── flashcardService.jsx
-│   │       ├── progressService.jsx
-│   │       └── quizService.jsx
+│   │       ├── aiService.js
+│   │       ├── authService.js
+│   │       ├── documentService.js
+│   │       ├── flashcardService.js
+│   │       ├── progressService.js
+│   │       └── quizService.js
 │   ├── App.jsx
 │   ├── index.css
 │   └── main.jsx
 ├── package.json
-├──.gitignore
-├──README.md
-├──eslint.config.js
-├──index.html
-├──package-lock.json
-├──package.json
-└──vite.config.js
+├── .gitignore
+├── README.md
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+└── vite.config.js
 ```
 
 ## 🔌 API Endpoints
@@ -277,6 +277,7 @@ frontend/ai-learning-assistant
 ### Authentication
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout (clears cookie)
 - `GET /api/auth/profile` - Get user profile (Protected)
 - `PUT /api/auth/profile` - Update profile (Protected)
 - `POST /api/auth/change-password` - Change password (Protected)
@@ -314,103 +315,140 @@ frontend/ai-learning-assistant
 
 ## 🔒 Security Features
 
-- **JWT Authentication**: Secure token-based authentication
+- **httpOnly Cookies**: The JWT is stored in an httpOnly cookie — it is never accessible to JavaScript, eliminating the XSS token-theft vector that localStorage has
+- **Secure & SameSite flags**: In production the cookie is `Secure` (HTTPS only) and `SameSite: none` to support cross-origin requests while blocking CSRF from third-party sites
 - **Password Hashing**: bcryptjs with salt rounds
-- **Rate Limiting**: 
+- **Rate Limiting**:
   - API routes: 100 requests per 15 minutes
-  - Auth routes: 5 attempts per 10 minutes
-- **CORS Protection**: Configured allowed origins
-- **Input Validation**: Mongoose schema validation
-- **Protected Routes**: Middleware-based authorization
+  - Auth routes: 20 attempts per 10 minutes
+- **CORS Protection**: Configured allowed origins with `credentials: true`
+- **NoSQL Injection Sanitization**: `req.body`, `req.params`, and `req.query` are sanitized on every request
+- **Input Validation**: express-validator on all auth routes, Mongoose schema validation on all models
+- **Helmet**: Security headers including Content Security Policy
+- **Protected Routes**: Middleware-based authorization on all private endpoints
 
 ## 🎨 Key Features Explained
 
 ### Frontend Architecture
 
 #### Service Layer Pattern
-All API calls are abstracted into service modules for clean separation of concerns:
+All API calls are abstracted into service modules. Errors are normalised to plain `Error` objects by the Axios interceptor, so every caller only needs to handle `err.message`:
 
 ```javascript
 // Example: authService.js
 const login = async (email, password) => {
-    const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, {
-        email,
-        password,
-    });
-    return response.data;
+  const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, { email, password });
+  return response.data;
 };
 ```
+
 **Available Services:**
-- `authService` - Authentication & user management
-- `documentService` - Document CRUD operations
-- `aiService` - AI feature interactions
-- `flashcardService` - Flashcard management
-- `quizService` - Quiz operations
-- `progressService` - Dashboard data
+- `authService` — Authentication & user management
+- `documentService` — Document CRUD operations
+- `aiService` — AI feature interactions
+- `flashcardService` — Flashcard management
+- `quizService` — Quiz operations
+- `progressService` — Dashboard data
 
 #### Axios Configuration
-Centralized HTTP client with automatic token injection:
+Centralised HTTP client. `withCredentials: true` is set globally so the httpOnly cookie is sent automatically on every request — no manual token handling required:
 
 ```javascript
-// Request Interceptor - Adds JWT to all requests
-axiosInstance.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+const axiosInstance = axios.create({
+  baseURL: BASE_URL,
+  timeout: 30000,
+  withCredentials: true, // sends the httpOnly cookie on every request
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
 });
 
-// Response Interceptor - Handles errors globally
+// Response interceptor — normalises all errors to plain Error objects
 axiosInstance.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        if (error.response?.status === 401) {
-            // Handle unauthorized
-        }
-        return Promise.reject(error);
+  (response) => response,
+  (error) => {
+    const { status, data } = error.response ?? {};
+    // Redirect to login on 401, but only when not already on an auth page
+    // (the session-restore call returns 401 for unauthenticated users — that's normal)
+    const authPages = ['/login', '/register'];
+    if (status === 401 && !authPages.includes(window.location.pathname)) {
+      window.location.replace('/login');
     }
+    return Promise.reject(
+      new Error(data?.error || data?.message || 'Something went wrong. Please try again.')
+    );
+  }
 );
 ```
 
 #### Authentication Context
-Global auth state management using React Context:
+Global auth state management. Session is restored on mount by calling `GET /api/auth/profile` — the cookie is sent automatically by the browser. No localStorage involved:
 
 ```javascript
 const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-    const login = (userData, token) => {
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(userData));
-        setUser(userData);
+  // Restore session on page load — cookie sent automatically
+  useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        const { data } = await axiosInstance.get(API_PATHS.AUTH.ME);
+        setUser(data.data);
         setIsAuthenticated(true);
-    };
-
-    const logout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+      } catch {
         setUser(null);
         setIsAuthenticated(false);
-        window.location.href = '/';
+      } finally {
+        setLoading(false);
+      }
     };
-    
-    // ... checkAuthStatus, updateUser
+    restoreSession();
+  }, []);
+
+  // Called after login — stores user in React state only.
+  // The actual session is the httpOnly cookie set by the server.
+  const login = (userData) => {
+    setUser(userData);
+    setIsAuthenticated(true);
+  };
+
+  const logout = async () => {
+    await axiosInstance.post(API_PATHS.AUTH.LOGOUT); // server clears the cookie
+    setUser(null);
+    setIsAuthenticated(false);
+    window.location.replace('/login');
+  };
 };
 ```
 
 #### Protected Routes
-Route protection with automatic redirects:
+Route protection with automatic redirects. The `loading` state prevents a flash of the login page while the session-restore call is in flight:
 
 ```javascript
+const ProtectedRoute = () => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) return <div>Loading...</div>;
+
+  return isAuthenticated ? (
+    <AppLayout><Outlet /></AppLayout>
+  ) : (
+    <Navigate to="/login" replace />
+  );
+};
+```
+
+```jsx
 <Route element={<ProtectedRoute />}>
-    <Route path="/dashboard" element={<DashboardPage />} />
-    <Route path="/documents" element={<DocumentListPage />} />
-    {/* Other protected routes */}
+  <Route path="/dashboard" element={<DashboardPage />} />
+  <Route path="/documents" element={<DocumentListPage />} />
+  {/* Other protected routes */}
 </Route>
 ```
+
 #### Design System
 Custom Tailwind CSS with glassmorphism and modern UI patterns:
 
@@ -427,7 +465,7 @@ Custom Tailwind CSS with glassmorphism and modern UI patterns:
 - **Focus Rings**: `focus:ring-4 focus:ring-emerald-500/20`
 - **Gradient Buttons**: With shine effect on hover
 - **Icon Integration**: Lucide React icons with consistent sizing
-  
+
 ### Document Chunking
 Documents are intelligently split into chunks for better AI processing:
 - **Chunk Size**: 500 words (configurable)
@@ -452,33 +490,31 @@ Using Google Gemini 2.5 Flash Lite:
 
 ## 🐛 Error Handling
 
-The application includes comprehensive error handling on both frontend and backend:
-
 ### Backend
-- Centralized error middleware
+- Centralised error middleware (`errorHandlers.js`)
 - Graceful PDF parsing failures
-- API timeout handling (10s)
+- API timeout handling
 - Database connection error recovery
 - User-friendly error messages
 
 ### Frontend
-- **Service Layer Error Catching**: All API calls wrapped in try-catch
-- **Axios Interceptors**: Global response error handling
-- **Toast Notifications**: User-friendly error messages
+- **Axios Interceptor**: Normalises all API errors into plain `Error` objects with a `.message` string — callers never need to inspect `error.response` directly
+- **Service Layer**: No try/catch wrappers — errors propagate cleanly from the interceptor
+- **Toast Notifications**: User-friendly error messages via react-hot-toast
 - **Form Validation**: Client-side validation before API calls
-- **Fallback UI**: Empty states and error boundaries
+- **Fallback UI**: Empty states for missing data
 - **Network Error Detection**: Timeout and connection error handling
 
-**Error Flow Example:**
+**Error flow example:**
+
 ```javascript
 try {
-    const data = await documentService.getDocuments();
-    setDocuments(data);
-} catch (error) {
-    toast.error(error.message || 'Failed to fetch documents');
-    console.error(error);
+  const data = await documentService.getDocuments();
+  setDocuments(data);
+} catch (err) {
+  toast.error(err.message || 'Failed to fetch documents');
 } finally {
-    setLoading(false);
+  setLoading(false);
 }
 ```
 
@@ -517,35 +553,37 @@ try {
 ### Route Structure
 
 **Public Routes:**
-- `/login` - User login page
-- `/register` - New user registration
-- `/` - Redirects to `/dashboard` if authenticated, `/login` otherwise
+- `/login` — User login page
+- `/register` — New user registration
+- `/` — Redirects to `/dashboard` if authenticated, `/login` otherwise
 
-**Protected Routes** (Require authentication):
-- `/dashboard` - Learning overview and statistics
-- `/documents` - All uploaded documents
-- `/documents/:id` - Single document detail view
-- `/flashcards` - All flashcard sets
-- `/documents/:id/flashcards` - Flashcards for specific document
-- `/quizzes/:quizId` - Take a quiz
-- `/quizzes/:quizId/results` - View quiz results
-- `/profile` - User profile management
-- `*` - 404 Not Found page
+**Protected Routes** (require authentication):
+- `/dashboard` — Learning overview and statistics
+- `/documents` — All uploaded documents
+- `/documents/:id` — Single document detail view
+- `/flashcards` — All flashcard sets
+- `/documents/:id/flashcards` — Flashcards for specific document
+- `/quizzes/:quizId` — Take a quiz
+- `/quizzes/:quizId/results` — View quiz results
+- `/profile` — User profile management
+- `*` — 404 Not Found page
 
 ### Navigation Flow
-1. **Unauthenticated User**: 
-   - Lands on `/` → Redirected to `/login`
-   - After login → Redirected to `/dashboard`
 
-2. **Authenticated User**:
-   - Lands on `/` → Redirected to `/dashboard`
+1. **Unauthenticated user**:
+   - Lands on `/` → redirected to `/login`
+   - After login → redirected to `/dashboard`
+
+2. **Authenticated user**:
+   - Lands on `/` → redirected to `/dashboard`
    - Can access all protected routes
-   - Logout → Redirected to `/login`
+   - On logout → redirected to `/login`
 
-3. **Token Persistence**:
-   - JWT stored in `localStorage`
-   - Auto-authentication check on app mount
-   - Token sent with every API request via interceptor
+3. **Session persistence**:
+   - JWT is stored in an httpOnly cookie set by the server
+   - On every page load, `AuthContext` calls `GET /api/auth/profile` — the browser sends the cookie automatically
+   - No token handling in JavaScript; no localStorage reads on startup
+
 ## 🚧 Future Enhancements
 
 - [ ] Spaced repetition algorithm for flashcards
@@ -558,27 +596,29 @@ try {
 - [ ] Social sharing features
 - [ ] Dark mode support
 
-
 ## 🙏 Acknowledgments
 
 ### Core Technologies
-- [Google Gemini AI](https://ai.google.dev/) - Powers all AI features (flashcards, quizzes, chat, summaries)
-- [MongoDB](https://www.mongodb.com/) - NoSQL database for flexible data storage
-- [Express.js](https://expressjs.com/) - Fast, minimalist backend framework
-- [React](https://react.dev/) - Component-based frontend library
-- [Node.js](https://nodejs.org/) - JavaScript runtime
+- [Google Gemini AI](https://ai.google.dev/) — Powers all AI features (flashcards, quizzes, chat, summaries)
+- [MongoDB](https://www.mongodb.com/) — NoSQL database for flexible data storage
+- [Express.js](https://expressjs.com/) — Fast, minimalist backend framework
+- [React](https://react.dev/) — Component-based frontend library
+- [Node.js](https://nodejs.org/) — JavaScript runtime
 
 ### Key Libraries & Tools
-- [Mongoose](https://mongoosejs.com/) - Elegant MongoDB object modeling
-- [Vite](https://vitejs.dev/) - Next-generation frontend tooling
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
-- [Lucide Icons](https://lucide.dev/) - Beautiful, consistent icon library
-- [React Router](https://reactrouter.com/) - Client-side routing
-- [Axios](https://axios-http.com/) - Promise-based HTTP client
-- [React Hot Toast](https://react-hot-toast.com/) - Lightweight toast notifications
-- [bcryptjs](https://www.npmjs.com/package/bcryptjs) - Password hashing
-- [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken) - JWT authentication
-- [pdf-parse](https://www.npmjs.com/package/pdf-parse) - PDF text extraction
+- [Mongoose](https://mongoosejs.com/) — Elegant MongoDB object modeling
+- [Vite](https://vitejs.dev/) — Next-generation frontend tooling
+- [Tailwind CSS](https://tailwindcss.com/) — Utility-first CSS framework
+- [Lucide Icons](https://lucide.dev/) — Beautiful, consistent icon library
+- [React Router](https://reactrouter.com/) — Client-side routing
+- [Axios](https://axios-http.com/) — Promise-based HTTP client
+- [React Hot Toast](https://react-hot-toast.com/) — Lightweight toast notifications
+- [bcryptjs](https://www.npmjs.com/package/bcryptjs) — Password hashing
+- [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken) — JWT authentication
+- [pdf-parse](https://www.npmjs.com/package/pdf-parse) — PDF text extraction
+- [cookie-parser](https://www.npmjs.com/package/cookie-parser) — Cookie parsing middleware
+- [helmet](https://www.npmjs.com/package/helmet) — Security headers
+
 ## 📧 Contact
 
 For questions or support, please open an issue in the GitHub repository.
