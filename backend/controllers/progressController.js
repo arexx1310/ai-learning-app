@@ -8,7 +8,7 @@ import Quiz from '../models/Quiz.js';
 
 export const getDashboard = async (req, res, next) => {
     try {
-        const userId = req.user._id;
+        const userId = req.user.id;
 
         // Get counts
 
@@ -49,7 +49,6 @@ export const getDashboard = async (req, res, next) => {
             .select('title score totalQuestions completedAt');
 
         //Study streak (simplified - in production, track daily activity)
-
         const studyStreak = Math.floor(Math.random() * 7) + 1; 
 
         res.status(200).json({
