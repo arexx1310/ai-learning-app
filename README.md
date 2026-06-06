@@ -5,7 +5,7 @@ An intelligent document-based learning platform that leverages Google's Gemini A
 ## ✨ Features
 
 ### 🎯 Core Functionality
-All AI features are powered by Google Gemini AI (`gemini-2.5-flash-lite`).
+All AI features are powered by Google Gemini AI (`gemini-2.5-flash-lite`) ([See GeminiService on backedn here](backend/utils/geminiService.js)).
 
 - **PDF Document Upload & Processing**: Securely upload PDF documents — text is automatically extracted, cleaned, and split into intelligent overlapping chunks ready for AI processing
 - **Flashcard Generation**: Analyses your document and generates structured Q&A flashcards, each automatically tagged with a difficulty level (easy, medium, or hard)
