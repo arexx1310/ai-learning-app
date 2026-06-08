@@ -22,7 +22,6 @@ const Tabs = ({ tabs, activeTab, setActiveTab}) => {
                             
                             {/* Active Underline Indicator */}
                             {activeTab === tab.name && (
-                                {/* Fixed a small typo in your original code here: changed from-emerald=500 to from-emerald-500 */}
                                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-emerald-500 to-teal-500 rounded-full shadow-lg shadow-emerald-500/25"/>
                             )}
                             
