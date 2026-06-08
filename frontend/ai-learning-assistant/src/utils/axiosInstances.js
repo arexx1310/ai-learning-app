@@ -1,5 +1,5 @@
 import axios from "axios";
-import { BASE_URL } from "./apiPaths";
+import { BASE_URL, API_PATHS } from "./apiPaths";
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -31,11 +31,19 @@ axiosInstance.interceptors.response.use(
       const { status, data } = error.response;
 
       // Cookie expired or invalid — redirect to login.
-      // Skip if already on an auth page to avoid infinite redirect loops
-      // (the session-restore call in AuthContext fires on every page load and
-      // returns 401 for unauthenticated users, which is normal — not an error).
+      // Skip if:
+      //   1. Already on an auth page (avoids infinite redirect loop), OR
+      //   2. The request was the session-restore call (GET /api/auth/profile on
+      //      mount) — a 401 there is completely normal for unauthenticated users
+      //      and must NOT trigger a hard redirect; AuthContext handles it silently.
       const authPages = ['/login', '/register'];
-      if (status === 401 && !authPages.includes(window.location.pathname)) {
+      const isSessionRestore = error.config?.url === API_PATHS.AUTH.ME;
+
+      if (
+        status === 401 &&
+        !authPages.includes(window.location.pathname) &&
+        !isSessionRestore
+      ) {
         window.location.replace("/login");
       }
 
