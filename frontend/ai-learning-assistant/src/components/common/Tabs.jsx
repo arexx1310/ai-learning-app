@@ -4,8 +4,10 @@ const Tabs = ({ tabs, activeTab, setActiveTab}) => {
     return (
         <div className="w-full">
             {/* Tab Navigation Wrapper */}
-            <div className="relative border-b-2 border-slate-100">
-                <nav className="flex gap-2">
+            {/* Added 'overflow-x-auto' and 'scrollbar-none' to handle horizontal scrolling cleanly */}
+            <div className="relative border-b-2 border-slate-100 overflow-x-auto scrollbar-none">
+                {/* Added 'flex-nowrap' so tabs never wrap to a new line, and 'w-max' so the nav stretches to fit all content */}
+                <nav className="flex flex-nowrap gap-2 w-max min-w-full">
                     {tabs.map((tab)=> (
                         <button
                             key={tab.name}
@@ -20,7 +22,8 @@ const Tabs = ({ tabs, activeTab, setActiveTab}) => {
                             
                             {/* Active Underline Indicator */}
                             {activeTab === tab.name && (
-                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-emerald=500 to-teal-500 rounded-full shadow-lg shadow-emerald-500/25"/>
+                                {/* Fixed a small typo in your original code here: changed from-emerald=500 to from-emerald-500 */}
+                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-emerald-500 to-teal-500 rounded-full shadow-lg shadow-emerald-500/25"/>
                             )}
                             
                             {/* Subtle hover background */}
